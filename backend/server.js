@@ -19,7 +19,7 @@ app.use(bodyParser.json());
 
 // CORS — allow frontend on Vercel
 app.use(cors({
-  origin: ["https://your-frontend.vercel.app"], // replace with your Vercel URL
+  origin: ["https://faculty-profile-app.vercel.app], // replace with your Vercel URL
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
