@@ -147,10 +147,13 @@
   </div>
 
   <script>
+    const BASE_URL = "https://faculty-profile-backend.onrender.com"; // Replace with your Render backend URL
+
     function showRegister() {
       document.getElementById("login-form").style.display = "none";
       document.getElementById("register-form").style.display = "block";
     }
+
     function showLogin() {
       document.getElementById("register-form").style.display = "none";
       document.getElementById("login-form").style.display = "block";
@@ -162,7 +165,7 @@
       const username = document.getElementById("register-username").value;
       const password = document.getElementById("register-password").value;
 
-      const res = await fetch("http://localhost:5500/register", {
+      const res = await fetch(`${BASE_URL}/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password })
@@ -179,7 +182,7 @@
       const username = document.getElementById("login-username").value;
       const password = document.getElementById("login-password").value;
 
-      const res = await fetch("http://localhost:5500/login", {
+      const res = await fetch(`${BASE_URL}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password })
@@ -189,7 +192,7 @@
       alert(data.message);
 
       if (res.ok) {
-        localStorage.setItem("username", data.username); // save username
+        localStorage.setItem("username", data.username);
         window.location.href = "page1.html";
       }
     });
