@@ -18,11 +18,13 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 // CORS — allow frontend on Vercel
-app.use(cors({
-  origin: ["https://faculty-profile-app.vercel.app"], // replace with your Vercel URL
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: ["https://faculty-profile-app.vercel.app"], // <-- your Vercel frontend
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+  })
+);
 
 // ------------------ MongoDB Connection ------------------
 const MONGO_URI = process.env.MONGO_URI;
@@ -40,8 +42,8 @@ connectDB();
 
 // ------------------ Schemas ------------------
 const userSchema = new mongoose.Schema({
-  username: String,
-  password: String,
+  username: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
 });
 const User = mongoose.model("User", userSchema);
 
@@ -65,12 +67,8 @@ const Faculty = mongoose.model("Faculty", facultySchema);
 
 // ------------------ Multer Setup ------------------
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + path.extname(file.originalname));
-  },
+  destination: (req, file, cb) => cb(null, uploadDir),
+  filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname)),
 });
 const upload = multer({ storage });
 
@@ -144,10 +142,7 @@ app.post("/api/faculty", upload.single("photo"), async (req, res) => {
 
 app.get("/api/faculty", async (req, res) => {
   try {
-    const faculties = await Faculty.find(
-      {},
-      "name designation department photo"
-    );
+    const faculties = await Faculty.find({}, "name designation department photo");
     res.json(faculties);
   } catch (err) {
     res.status(500).json({ success: false, message: "Error fetching faculty" });
@@ -158,79 +153,5 @@ app.get("/api/faculty/:id", async (req, res) => {
   try {
     const faculty = await Faculty.findById(req.params.id);
     if (!faculty)
-      return res
-        .status(404)
-        .json({ success: false, message: "Faculty not found" });
-    res.json(faculty);
-  } catch (err) {
-    res.status(500).json({ success: false, message: "Error fetching faculty" });
-  }
-});
-
-app.put("/api/faculty/:id", upload.single("photo"), async (req, res) => {
-  try {
-    const faculty = await Faculty.findById(req.params.id);
-    if (!faculty)
-      return res
-        .status(404)
-        .json({ success: false, message: "Faculty not found" });
-
-    const updatedData = {
-      name: req.body.name,
-      designation: req.body.designation,
-      department: req.body.department,
-      publications: req.body.publications,
-      researchProjects: req.body.researchProjects,
-      articlesAndJournals: req.body.articlesAndJournals,
-      workshops: req.body.workshops,
-      coursesHandled: req.body.coursesHandled,
-      awardsReceived: req.body.awardsReceived,
-    };
-
-    if (req.file) {
-      if (faculty.photo) {
-        const oldPath = path.join(__dirname, faculty.photo);
-        if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
-      }
-      updatedData.photo = `/faculty_uploadss/${req.file.filename}`;
-    }
-
-    const updatedFaculty = await Faculty.findByIdAndUpdate(
-      req.params.id,
-      updatedData,
-      { new: true }
-    );
-    res.json({
-      success: true,
-      message: "Faculty updated successfully!",
-      faculty: updatedFaculty,
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: "Error updating faculty" });
-  }
-});
-
-app.delete("/api/faculty/:id", async (req, res) => {
-  try {
-    const deleted = await Faculty.findByIdAndDelete(req.params.id);
-    if (!deleted)
-      return res
-        .status(404)
-        .json({ success: false, message: "Faculty not found" });
-
-    if (deleted.photo) {
-      const oldPath = path.join(__dirname, deleted.photo);
-      if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
-    }
-
-    res.json({ success: true, message: "Faculty deleted successfully" });
-  } catch (err) {
-    res.status(500).json({ success: false, message: "Error deleting faculty" });
-  }
-});
-
-// ------------------ Start Server ------------------
-app.listen(PORT, () =>
-  console.log(`🚀 Server running at http://localhost:${PORT}`)
-);
+      return res.status(404).json({ success: false, message: "Faculty not found" });
+    res.json(facul
