@@ -7,6 +7,7 @@ const cors = require("cors");
 const path = require("path");
 const multer = require("multer");
 const fs = require("fs");
+require("dotenv").config(); // ✅ load .env locally (ignored on Render)
 
 // ------------------ Config ------------------
 const app = express();
@@ -18,13 +19,7 @@ app.use(bodyParser.json());
 app.use(cors());
 
 // ------------------ MongoDB Connection ------------------
-
-// ✅ Option 1: Local MongoDB
-// const MONGO_URI = "mongodb://127.0.0.1:27017/facultyDB";
-
-// ✅ Option 2: MongoDB Atlas (replace <username>, <password>, <cluster>)
-// Example: cluster0.xxxxx.mongodb.net is your cluster host
-const MONGO_URI = mongodb+srv://alna123:alna123@cluster0.3ydyhyy.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+const MONGO_URI = process.env.MONGO_URI; // ✅ from Render environment
 
 const connectDB = async () => {
   try {
@@ -56,7 +51,7 @@ const facultySchema = new mongoose.Schema({
   name: String,
   designation: String,
   department: String,
-  photo: String, // stored as `/faculty_uploadss/<filename>`
+  photo: String,
   publications: String,
   researchProjects: String,
   articlesAndJournals: String,
@@ -78,20 +73,17 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // ------------------ Serve static folders ------------------
-app.use("/login", express.static(path.join(__dirname, "login_folder"))); // login.html
-app.use("/home", express.static(path.join(__dirname, "home_folder")));   // page1.html
-app.use("/faculty", express.static(path.join(__dirname, "faculty_folder"))); // frontend.html + js/css
-app.use("/faculty_uploadss", express.static(uploadDir)); // uploaded images
+app.use("/login", express.static(path.join(__dirname, "login_folder")));
+app.use("/home", express.static(path.join(__dirname, "home_folder")));
+app.use("/faculty", express.static(path.join(__dirname, "faculty_folder")));
+app.use("/faculty_uploadss", express.static(uploadDir));
 
 // ------------------ Routes ------------------
-
-// Root -> login page
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "login_folder/login.html"));
 });
 
 // ------------------ User Auth ------------------
-// Register
 app.post("/register", async (req, res) => {
   const { username, password } = req.body;
   try {
@@ -109,7 +101,6 @@ app.post("/register", async (req, res) => {
   }
 });
 
-// Login
 app.post("/login", async (req, res) => {
   const { username, password } = req.body;
   try {
@@ -127,8 +118,6 @@ app.post("/login", async (req, res) => {
 });
 
 // ------------------ Faculty API ------------------
-
-// Create new faculty
 app.post("/api/faculty", upload.single("photo"), async (req, res) => {
   try {
     const newFaculty = new Faculty({
@@ -151,7 +140,6 @@ app.post("/api/faculty", upload.single("photo"), async (req, res) => {
   }
 });
 
-// Get all faculty
 app.get("/api/faculty", async (req, res) => {
   try {
     const faculties = await Faculty.find({}, "name designation department photo");
@@ -161,7 +149,6 @@ app.get("/api/faculty", async (req, res) => {
   }
 });
 
-// Get faculty by ID
 app.get("/api/faculty/:id", async (req, res) => {
   try {
     const faculty = await Faculty.findById(req.params.id);
@@ -172,7 +159,6 @@ app.get("/api/faculty/:id", async (req, res) => {
   }
 });
 
-// Update faculty
 app.put("/api/faculty/:id", upload.single("photo"), async (req, res) => {
   try {
     const faculty = await Faculty.findById(req.params.id);
@@ -206,7 +192,6 @@ app.put("/api/faculty/:id", upload.single("photo"), async (req, res) => {
   }
 });
 
-// Delete faculty
 app.delete("/api/faculty/:id", async (req, res) => {
   try {
     const deleted = await Faculty.findByIdAndDelete(req.params.id);
