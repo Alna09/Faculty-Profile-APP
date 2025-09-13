@@ -23,10 +23,7 @@ const MONGO_URI = process.env.MONGO_URI; // ✅ from Render environment
 
 const connectDB = async () => {
   try {
-    await mongoose.connect(MONGO_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    await mongoose.connect(MONGO_URI);
     console.log("✅ MongoDB Connected");
   } catch (err) {
     console.error("❌ MongoDB Connection Error:", err.message);
@@ -36,14 +33,12 @@ const connectDB = async () => {
 connectDB();
 
 // ------------------ Schemas ------------------
-// User schema
 const userSchema = new mongoose.Schema({
   username: String,
   password: String,
 });
 const User = mongoose.model("User", userSchema);
 
-// Faculty schema
 const uploadDir = path.join(__dirname, "faculty_uploadss");
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
 
@@ -73,14 +68,12 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // ------------------ Serve static folders ------------------
-app.use("/login", express.static(path.join(__dirname, "login_folder")));
-app.use("/home", express.static(path.join(__dirname, "home_folder")));
-app.use("/faculty", express.static(path.join(__dirname, "faculty_folder")));
+// If frontend lives in backend folders
 app.use("/faculty_uploadss", express.static(uploadDir));
 
-// ------------------ Routes ------------------
+// ✅ Serve index.html as root (update folder if needed)
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "login_folder/login.html"));
+  res.sendFile(path.join(__dirname, "index.html")); 
 });
 
 // ------------------ User Auth ------------------
